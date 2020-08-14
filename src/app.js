@@ -1,11 +1,10 @@
 require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
-const winston = require('winston');
 const cors = require("cors");
 const helmet = require("helmet");
 const { NODE_ENV } = require("./config");
-const { v4: uuid } = require('uuid');
+const bookmarkRouter = require('./bookmark-router')
 const app = express();
 
 const morganOption = NODE_ENV === "production" ? "tiny" : "common";
@@ -27,33 +26,6 @@ app.use(function validateBearerToken(req, res, next) {
   next()
 })
 
-
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.File({ filename: 'info.log' })
-  ]
-});
-
-if (NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }));
-}
-
-app.get("/", (req, res) => {
-  res.send("Hello, world!");
-});
-
-const bookmarks = [{
-  id: uuid(),
-  title: 'Title',
-  url: 'URL',
-  description: 'Description',
-  rating: 4
-}];
-
 app.use(function errorHandler(error, req, res, next) {
   let response;
   if (process.env.NODE_ENV === "production") {
@@ -67,72 +39,7 @@ app.use(function errorHandler(error, req, res, next) {
 
 app.post('/bookmark', (req, res) => {
 
-  const { title, url, description, rating, header, bookmarkIds = [] } = req.body;
-
-  if (!title) {
-    logger.error(`Title is required`);
-    return res
-      .status(400)
-      .send('Title is required');
-  }
-  if (!url) {
-    logger.error(`Url is required`);
-    return res
-      .status(400)
-      .send('Url is required');
-  }
-  if (!description) {
-    logger.error(`Description is required`);
-    return res
-      .status(400)
-      .send('Decsription is required');
-  }
-  if (!rating) {
-    logger.error(`Rating is required`);
-    return res
-      .status(400)
-      .send('Rating is required');
-  }
-
-  if (!header) {
-    logger.error(`Header is required`);
-    return res
-      .status(400)
-      .send('Invalid data');
-  }
-
-  if (bookmarkIds.length > 0) {
-    let valid = true;
-    bookmarkIds.forEach(cid => {
-      const bookmark = bookmarks.find(c => c.id == cid);
-      if (!bookmark) {
-        logger.error(`Bookmark with id ${cid} not found in bookmarks array.`);
-        valid = false;
-      }
-    });
-
-  if (!valid) {
-    return res
-      .status(400)
-      .send('Invalid data');
-  }
-}
-const newBookmark = {
-  id,
-  title,
-  url,
-  description,
-  rating
-};
-  // get an id
-  const id = uuid();
-  bookmarks.push(newBookmark);
-
-  logger.info(`Bookmark with id ${id} created`);
-  res
-    .status(201)
-    .location(`http://localhost:8000/list/${id}`)
-    .json({id});
+  
 });
 
 app.delete('/card/:id', (req, res) => {
@@ -160,5 +67,5 @@ app.delete('/card/:id', (req, res) => {
     .end();
 });
 
-
+app.use(bookmarkRouter)
 module.exports = app;
