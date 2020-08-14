@@ -117,7 +117,7 @@ app.post('/bookmark', (req, res) => {
       .send('Invalid data');
   }
 }
-const bookmark = {
+const newBookmark = {
   id,
   title,
   url,
@@ -126,7 +126,7 @@ const bookmark = {
 };
   // get an id
   const id = uuid();
-  bookmarks.push(bookmark);
+  bookmarks.push(newBookmark);
 
   logger.info(`Bookmark with id ${id} created`);
   res
@@ -134,5 +134,31 @@ const bookmark = {
     .location(`http://localhost:8000/list/${id}`)
     .json({id});
 });
+
+app.delete('/card/:id', (req, res) => {
+  const { id } = req.params;
+
+  const bookIndex = bookmarks.findIndex(bm => bm.id == id);
+
+  if (bookIndex === -1) {
+    logger.error(`Card with id ${id} not found.`);
+    return res
+      .status(404)
+      .send('Not found');
+  }
+  bookmarks.forEach(bookmark => {
+    const bookmarkIds = bookmark.bookmarkIds.filter(cid => cid !== id);
+    bookmark.bookmarkIds = bookmarkIds;
+  });
+
+  bookmarks.splice(bookIndex, 1);
+
+  logger.info(`Book with id ${id} deleted.`);
+
+  res
+    .status(204)
+    .end();
+});
+
 
 module.exports = app;
