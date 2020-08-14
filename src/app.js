@@ -36,14 +36,11 @@ const logger = winston.createLogger({
   ]
 });
 
-
 if (NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format.simple()
   }));
 }
-
-
 
 app.get("/", (req, res) => {
   res.send("Hello, world!");
@@ -57,26 +54,6 @@ const bookmarks = [{
   rating: 4
 }];
 
-if (!title) {
-  logger.error(`Title is required`);
-  return res
-    .status(400)
-    .send('Title is required');
-}
-if (!url) {
-  logger.error(`Url is required`);
-  return res
-    .status(400)
-    .send('Url is required');
-}
-if (!description) {
-  logger.error(`Description is required`);
-  return res
-    .status(400)
-    .send('Decsription is required');
-}
-
-
 app.use(function errorHandler(error, req, res, next) {
   let response;
   if (process.env.NODE_ENV === "production") {
@@ -88,6 +65,74 @@ app.use(function errorHandler(error, req, res, next) {
   res.status(500).json(response);
 });
 
+app.post('/bookmark', (req, res) => {
 
+  const { title, url, description, rating, header, bookmarkIds = [] } = req.body;
+
+  if (!title) {
+    logger.error(`Title is required`);
+    return res
+      .status(400)
+      .send('Title is required');
+  }
+  if (!url) {
+    logger.error(`Url is required`);
+    return res
+      .status(400)
+      .send('Url is required');
+  }
+  if (!description) {
+    logger.error(`Description is required`);
+    return res
+      .status(400)
+      .send('Decsription is required');
+  }
+  if (!rating) {
+    logger.error(`Rating is required`);
+    return res
+      .status(400)
+      .send('Rating is required');
+  }
+
+  if (!header) {
+    logger.error(`Header is required`);
+    return res
+      .status(400)
+      .send('Invalid data');
+  }
+
+  if (bookmarkIds.length > 0) {
+    let valid = true;
+    bookmarkIds.forEach(cid => {
+      const bookmark = bookmarks.find(c => c.id == cid);
+      if (!bookmark) {
+        logger.error(`Bookmark with id ${cid} not found in bookmarks array.`);
+        valid = false;
+      }
+    });
+
+  if (!valid) {
+    return res
+      .status(400)
+      .send('Invalid data');
+  }
+}
+const bookmark = {
+  id,
+  title,
+  url,
+  description,
+  rating
+};
+  // get an id
+  const id = uuid();
+  bookmarks.push(bookmark);
+
+  logger.info(`Bookmark with id ${id} created`);
+  res
+    .status(201)
+    .location(`http://localhost:8000/list/${id}`)
+    .json({id});
+});
 
 module.exports = app;
