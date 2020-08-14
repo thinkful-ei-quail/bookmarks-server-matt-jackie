@@ -1,82 +1,73 @@
-const express = require("express");
+/* eslint-disable strict */
+const express = require('express');
+const store = require('./store');
+const bodyParser = express.json();
+const logger = require('./logger');
+const { v4: uuid } = require('uuid');
+
+
 const bookmarkRouter = express.Router();
 const bodyParser = express.json();
-const logger = require('./logger')
-const { v4: uuid } = require('uuid')
-const bookmarkRouter = require("./bookmark-router");
-const app = require("./app");
-
 bookmarkRouter
-  .route("/bookmark")
+  .route('/bookmark')
   .get((req, res) => {
     res.json(store.bookmarks);
   })
   .post(bodyParser, (req, res) => {
-    const bookmarks = [
-      {
-        id: uuid(),
-        title: "Title",
-        url: "URL",
-        description: "Description",
-        rating: 4,
-      },
-    ];
-    const {
-      title,
-      url,
-      description,
-      rating,
-      header,
-      bookmarkIds = [],
-    } = req.body;
-
-    if (!title) {
-      logger.error(`Title is required`);
-      return res.status(400).send("Title is required");
-    }
-    if (!url) {
-      logger.error(`Url is required`);
-      return res.status(400).send("Url is required");
-    }
-    if (!description) {
-      logger.error(`Description is required`);
-      return res.status(400).send("Decsription is required");
-    }
-    if (!rating) {
-      logger.error(`Rating is required`);
-      return res.status(400).send("Rating is required");
-    }
-
-    if (!header) {
-      logger.error(`Header is required`);
-      return res.status(400).send("Invalid data");
-    }
-
-    if (bookmarkIds.length > 0) {
-      let valid = true;
-      bookmarkIds.forEach((cid) => {
-        const bookmark = bookmarks.find((c) => c.id == cid);
-        if (!bookmark) {
-          logger.error(`Bookmark with id ${cid} not found in bookmarks array.`);
-          valid = false;
-        }
-      });
-
-      if (!valid) {
-        return res.status(400).send("Invalid data");
+    for(const field of ['title','url','rating']){
+      if(!req.body[field]){
+        logger.error(`${field} is required`)
+        return res.status(400).send(`'${field}' if required`)
       }
     }
-    const newBookmark = {
-      id,
-      title,
-      url,
-      description,
-      rating,
-    };
-    // get an id
-    const id = uuid();
-    bookmarks.push(newBookmark);
 
-    logger.info(`Bookmark with id ${id} created`);
-    res.status(201).location(`http://localhost:8000/list/${id}`).json({ id });
-  });
+    const {title,url,description,rating} = req.body
+
+    if(!Number.isInteger(rating) || rating < 0 || rating > 5){
+      logger.error(`Invalid '${rating}' supplied`)
+      return res.status(400).send(`'rating' must be a number between 0 and 5`)
+    }
+    if(!isWebUri(url)) {
+      logger.error(`Invalid url '${url}' supplied`)
+      return res.status(400).send(`'url' must be a valid URL`)
+    }
+    const bookmark = { id: uuid(), title, url, description, rating}
+
+    store.bookmarks.push(bookmark)
+    logger.info(`Bookmark with id ${bookmark.id} created`)
+    res
+    .status(201)
+    .location(`http://localhost:8000/bookmarks/${bookmark.id}`)
+    .json(bookmark)
+  })
+  bookmarkRouter
+    .route('/bookmarks/:bookmark-id')
+    .get((req,res) => {
+      const {bookmark-id} = req.params
+      const bookmark = store.bookmarks.find(c => c.id == bookmark-id)
+
+      if(!bookmark){
+        logger.error(`Bookmark with id ${bookmark_id} not found.`)
+        return res
+          .status(404)
+          .send('Bookmark Not Found')
+      }
+      res.json(bookmark)
+    })
+    .delete((req,res) => {
+      const {bookmark-id} = req.params
+      const bookmarkIndex = store.bookmarks.findIndex(b => b.id === bookmark-id)
+
+      if(bookmarkIndex === -1){
+        logger.error(`Bookmark with id ${bookmark-id} not found.`)
+        return res
+        .status(404)
+        .send('Bookmark Not Found')
+      }
+      store.bookmarks.splice(bookmarkIndex, 1)
+      logger.info(`Bookmark with id ${bookmark-id} deleted.`)
+      res
+      .status(204)
+      .end()
+    })
+module.exports = bookmarkRouter
