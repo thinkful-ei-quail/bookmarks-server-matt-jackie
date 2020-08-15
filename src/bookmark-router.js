@@ -16,7 +16,7 @@ bookmarkRouter
     for(const field of ['title','url','rating']){
       if(!req.body[field]){
         logger.error(`${field} is required`);
-        return res.status(400).send(`'${field}' if required`);
+        return res.status(400).send(`'${field}' is required`);
       }
     }
 

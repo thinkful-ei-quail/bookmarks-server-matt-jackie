@@ -2,3 +2,5 @@
 {"message":"Title is required","level":"error"}
 {"message":"Url is required","level":"error"}
 {"message":"Description is required","level":"error"}
+{"message":"Unauthorized request to path /bookmark","level":"error"}
+{"message":"rating is required","level":"error"}
