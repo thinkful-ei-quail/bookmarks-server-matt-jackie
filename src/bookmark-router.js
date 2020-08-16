@@ -1,4 +1,3 @@
-/* eslint-disable strict */
 const express = require('express');
 const store = require('./store');
 const logger = require('./logger');

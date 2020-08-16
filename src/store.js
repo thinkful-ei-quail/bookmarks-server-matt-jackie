@@ -1,4 +1,3 @@
-// eslint-disable-next-line strict
 const { v4: uuid } = require('uuid');
 
 const bookmarks = [

@@ -4,3 +4,5 @@
 {"message":"Description is required","level":"error"}
 {"message":"Unauthorized request to path /bookmark","level":"error"}
 {"message":"rating is required","level":"error"}
+{"message":"Unauthorized request to path /bookmark","level":"error"}
+{"message":"rating is required","level":"error"}
