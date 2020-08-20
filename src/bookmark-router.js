@@ -1,3 +1,8 @@
+<<<<<<< Updated upstream
+=======
+/* eslint-disable eqeqeq */
+/* eslint-disable strict */
+>>>>>>> Stashed changes
 const express = require('express');
 const store = require('./store');
 const logger = require('./logger');

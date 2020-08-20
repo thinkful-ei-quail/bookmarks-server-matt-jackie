@@ -1,3 +1,9 @@
+<<<<<<< Updated upstream
+=======
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-console */
+/* eslint-disable strict */
+>>>>>>> Stashed changes
 const {NODE_ENV} = require('./config');
 const logger = require('./logger');
 function errorHandler(error, req, res, next) {
